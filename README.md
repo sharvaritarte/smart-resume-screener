@@ -9,3 +9,9 @@ A Spring Boot + MongoDB application that uploads resumes, extracts text using Ap
    ```bash
    git clone https://github.com/<your-username>/smart-resume-screener.git
    cd smart-resume-screener
+
+📦 Tech Stack
+Java 17
+Spring Boot
+MongoDB Atlas
+Apache Tika
