@@ -4,6 +4,7 @@ import com.example.smart_resume_screener.model.ResumeDocument;
 import com.example.smart_resume_screener.repository.ResumeRepository;
 import org.apache.tika.Tika;
 import org.apache.tika.exception.TikaException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,6 +15,7 @@ import java.time.LocalDateTime;
 @Service
 public class ResumeService {
 
+    @Autowired
     private final ResumeRepository resumeRepository;
     private final Tika tika = new Tika(); // Apache Tika for text extraction
 
@@ -50,5 +52,13 @@ public class ResumeService {
             e.printStackTrace();
             throw new RuntimeException("Error while extracting text from resume: " + e.getMessage());
         }
+
+
     }
+    public ResumeDocument getResumeById(String id) {
+        return resumeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resume not found"));
+    }
+
+
 }
