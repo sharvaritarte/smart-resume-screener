@@ -30,6 +30,7 @@ public class ParsingService {
         parsed.setEmail(extractEmail(text));
         parsed.setPhone(extractPhone(text));
         parsed.setSkills(extractSkills(text));
+        parsed.setExperience(extractExperience(text));
         parsed.setParsedAt(LocalDateTime.now());
 
         return parsedResumeRepository.save(parsed);
@@ -59,4 +60,19 @@ public class ParsingService {
         }
         return found;
     }
+    private int extractExperience(String text) {
+        // Regex to match patterns like "3 years", "3+ yrs", "2 yrs experience", etc.
+        Pattern expPattern = Pattern.compile(
+                "(\\d+)\\s*(\\+)?\\s*(years|yrs|year|yr)\\s*(of experience|experience|exp)?",
+                Pattern.CASE_INSENSITIVE
+        );
+
+        Matcher matcher = expPattern.matcher(text);
+        if (matcher.find()) {
+            return Integer.parseInt(matcher.group(1));
+        }
+
+        return 0; // default if not found
+    }
+
 }

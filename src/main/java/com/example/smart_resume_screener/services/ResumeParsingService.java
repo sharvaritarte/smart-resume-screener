@@ -1,10 +1,8 @@
 package com.example.smart_resume_screener.services;
 
 import com.example.smart_resume_screener.model.ParsedResume;
-import com.example.smart_resume_screener.repository.ParsedResumeRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,37 +10,72 @@ import java.util.regex.Pattern;
 @Service
 public class ResumeParsingService {
 
-    private final ParsedResumeRepository parsedResumeRepository;
+    // Predefined skill list (extend as needed)
+    private static final List<String> SKILLS = Arrays.asList(
+            "Java", "Spring Boot", "Hibernate", "SQL", "Python", "JavaScript", "React", "AWS"
+    );
 
-    public ResumeParsingService(ParsedResumeRepository parsedResumeRepository) {
-        this.parsedResumeRepository = parsedResumeRepository;
-    }
+    // Patterns for email and phone
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("\\b[\\w.%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}\\b");
+    private static final Pattern PHONE_PATTERN = Pattern.compile("\\b\\d{10}\\b");
 
-    public ParsedResume parseResume(String text) {
+    // Pattern for education keywords
+    private static final List<String> EDUCATION_KEYWORDS = Arrays.asList(
+            "Bachelor", "Master", "B.Tech", "M.Tech", "B.E", "M.E", "MBA", "PhD"
+    );
+
+    // Pattern for experience (years)
+    private static final Pattern EXPERIENCE_PATTERN = Pattern.compile("(\\d+)\\s*(years|yrs)\\s*(of experience)?", Pattern.CASE_INSENSITIVE);
+
+    public ParsedResume parseResume(String resumeText) {
         ParsedResume parsed = new ParsedResume();
 
-        // Extract name (assume first line)
-        String[] lines = text.split("\n");
-        if (lines.length > 0) parsed.setName(lines[0].trim());
-
-        // Extract email
-        Matcher emailMatcher = Pattern.compile("[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}").matcher(text);
-        if (emailMatcher.find()) parsed.setEmail(emailMatcher.group());
-
-        // Extract phone
-        Matcher phoneMatcher = Pattern.compile("(\\+91\\s?)?[6-9]\\d{9}").matcher(text);
-        if (phoneMatcher.find()) parsed.setPhone(phoneMatcher.group());
-
-        // Extract skills
-        List<String> skills = Arrays.asList("Java", "Python", "Spring", "Spring Boot", "Hibernate", "SQL", "HTML", "CSS", "JavaScript", "React");
-        List<String> found = new ArrayList<>();
-        for (String skill : skills) {
-            if (text.toLowerCase().contains(skill.toLowerCase())) found.add(skill);
+        // Extract Email
+        Matcher emailMatcher = EMAIL_PATTERN.matcher(resumeText);
+        if (emailMatcher.find()) {
+            parsed.setEmail(emailMatcher.group());
         }
-        parsed.setSkills(found);
-        parsed.setParsedAt(LocalDateTime.now());
 
-        // Save parsed data in MongoDB
-        return parsedResumeRepository.save(parsed);
+        // Extract Phone
+        Matcher phoneMatcher = PHONE_PATTERN.matcher(resumeText);
+        if (phoneMatcher.find()) {
+            parsed.setPhone(phoneMatcher.group());
+        }
+
+        // Extract Skills
+        List<String> foundSkills = new ArrayList<>();
+        String lowerText = resumeText.toLowerCase();
+        for (String skill : SKILLS) {
+            if (lowerText.contains(skill.toLowerCase())) {
+                foundSkills.add(skill);
+            }
+        }
+        parsed.setSkills(foundSkills);
+
+        // Extract Education
+        List<String> educationList = new ArrayList<>();
+        for (String edu : EDUCATION_KEYWORDS) {
+            if (lowerText.contains(edu.toLowerCase())) {
+                educationList.add(edu);
+            }
+        }
+        parsed.setEducation(educationList);
+
+        // Extract Experience
+        Matcher expMatcher = EXPERIENCE_PATTERN.matcher(resumeText);
+        if (expMatcher.find()) {
+            parsed.setExperience(Integer.parseInt(expMatcher.group(1)));
+        }
+
+        // Extract Name (simple heuristic: first line with capital letters)
+        String[] lines = resumeText.split("\\r?\\n");
+        for (String line : lines) {
+            if (line.trim().matches("^[A-Z][a-z]+(\\s[A-Z][a-z]+)*$")) {
+                parsed.setName(line.trim());
+                break;
+            }
+        }
+
+        return parsed;
     }
 }
