@@ -1,32 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Scoring Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; background-color: #f5f5f5; }
-        h1 { text-align: center; }
-        .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
-        input[type="file"] { margin-bottom: 10px; }
-        input[type="text"] { width: 100%; margin-bottom: 10px; padding: 8px; }
-        button { padding: 10px 20px; background: #4CAF50; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
-        button:hover { background: #45a049; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #4CAF50; color: white; }
-        pre { white-space: pre-wrap; word-wrap: break-word; }
-    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Screener</title>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="container">
-    <h1>Resume Scoring Dashboard</h1>
+<!-- Header Section -->
+<header class="hero">
+    <h1>📄 Resume Screener</h1>
+    <p>Your AI Buddy for Smart Resume Analysis 💡</p>
+    <div class="sub-text">
+        <p>
+            Upload your resume and let our intelligent system analyze your skills, experience,
+            and job-fit score instantly! Whether you’re applying as a
+            <b>Data Scientist</b> or <b>Software Engineer</b>, we’ve got you covered 🚀
+        </p>
+    </div>
+</header>
 
-    <!-- Upload Form -->
-    <input type="file" id="resumeFile" accept=".pdf,.doc,.docx">
-    <input type="text" id="roles" placeholder="Enter roles separated by comma (e.g., Java Developer,Python Developer)">
-    <button onclick="uploadAndScore()">Upload & Score</button>
+<!-- Upload Box -->
+<section class="upload-section">
+    <div class="upload-card">
+        <h2>Upload Resume</h2>
+        <label class="upload-box" id="uploadArea">
+            <input type="file" id="resumeFile" accept=".pdf,.doc,.docx" onchange="showFileName(event)" />
+            <span id="uploadText">Choose File</span>
+            <p class="file-name" id="fileName">No file chosen</p>
+        </label>
+
+        <input type="text" id="roles" placeholder="🎯 Enter target role (e.g., Data Scientist)" />
+        <button onclick="uploadAndScore()">Analyze Resume</button>
+    </div>
 
     <!-- Results Table -->
     <table id="resultsTable" style="display:none;">
@@ -37,73 +44,15 @@
             <th>Feedback</th>
         </tr>
         </thead>
-        <tbody id="resultsBody">
-        </tbody>
+        <tbody id="resultsBody"></tbody>
     </table>
-</div>
+</section>
 
-<script>
-    async function uploadAndScore() {
-      const fileInput = document.getElementById('resumeFile');
-      const rolesInput = document.getElementById('roles').value.trim();
-      if (!fileInput.files[0] || !rolesInput) {
-        alert('Please select a file and enter roles.');
-        return;
-      }
+<!-- Footer -->
+<footer>
+    <p>Made with ❤️ by Resume Screener | 2025</p>
+</footer>
 
-      const file = fileInput.files[0];
-      const roles = rolesInput;
-
-      try {
-        // Step 1: Upload resume
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const uploadResponse = await fetch('http://localhost:8080/api/resume/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!uploadResponse.ok) throw new Error('Upload failed');
-        const resume = await uploadResponse.json();
-        const resumeId = resume.id;
-
-        // Step 2: Get multi-role scores
-        const scoreResponse = await fetch(`http://localhost:8080/api/resume/score-multi/${resumeId}?roles=${encodeURIComponent(roles)}`);
-        if (!scoreResponse.ok) throw new Error('Scoring failed');
-        const scores = await scoreResponse.json();
-
-        // Step 3: Display in table
-        const tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = ''; // clear previous results
-        for (const role in scores) {
-          const row = document.createElement('tr');
-
-          const tdRole = document.createElement('td');
-          tdRole.textContent = role;
-          row.appendChild(tdRole);
-
-          const tdScore = document.createElement('td');
-          tdScore.textContent = scores[role].score;
-          row.appendChild(tdScore);
-
-          const tdFeedback = document.createElement('td');
-          const pre = document.createElement('pre');
-          pre.textContent = scores[role].feedback;
-          tdFeedback.appendChild(pre);
-          row.appendChild(tdFeedback);
-
-          tbody.appendChild(row);
-        }
-
-        document.getElementById('resultsTable').style.display = 'table';
-
-      } catch (err) {
-        console.error(err);
-        alert('Error: ' + err.message);
-      }
-    }
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
